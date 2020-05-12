@@ -1,9 +1,9 @@
 package service
 
 import (
-	"github.com/go-workflow/go-workflow/workflow-engine/model"
 	"github.com/jinzhu/gorm"
 	"github.com/mumushuiding/util"
+	"go-workflow/workflow-engine/model"
 )
 
 // SaveIdentitylinkTx SaveIdentitylinkTx
@@ -12,7 +12,7 @@ func SaveIdentitylinkTx(i *model.Identitylink, tx *gorm.DB) error {
 }
 
 // AddNotifierTx 添加抄送人候选用户组
-func AddNotifierTx(group, company string, step, procInstID int, tx *gorm.DB) error {
+func AddNotifierTx(group, tenant string, step, procInstID int, tx *gorm.DB) error {
 	yes, err := ExistsNotifierByProcInstIDAndGroup(procInstID, group)
 	if err != nil {
 		return err
@@ -25,14 +25,14 @@ func AddNotifierTx(group, company string, step, procInstID int, tx *gorm.DB) err
 		Type:       model.IdentityTypes[model.NOTIFIER],
 		Step:       step,
 		ProcInstID: procInstID,
-		Company:    company,
+		Tenant:     tenant,
 	}
 	return SaveIdentitylinkTx(i, tx)
 }
 
 // AddCandidateGroupTx AddCandidateGroupTx
 // 添加候选用户组
-func AddCandidateGroupTx(group, company string, step, taskID, procInstID int, tx *gorm.DB) error {
+func AddCandidateGroupTx(group, tenant string, step, taskID, procInstID int, tx *gorm.DB) error {
 	err := DelCandidateByProcInstID(procInstID, tx)
 	if err != nil {
 		return err
@@ -43,14 +43,14 @@ func AddCandidateGroupTx(group, company string, step, taskID, procInstID int, tx
 		TaskID:     taskID,
 		Step:       step,
 		ProcInstID: procInstID,
-		Company:    company,
+		Tenant:     tenant,
 	}
 	return SaveIdentitylinkTx(i, tx)
 }
 
 // AddCandidateUserTx AddCandidateUserTx
 // 添加候选用户
-func AddCandidateUserTx(userID, company string, step, taskID, procInstID int, tx *gorm.DB) error {
+func AddCandidateUserTx(userID, tenant string, step, taskID, procInstID int, tx *gorm.DB) error {
 	err := DelCandidateByProcInstID(procInstID, tx)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func AddCandidateUserTx(userID, company string, step, taskID, procInstID int, tx
 		TaskID:     taskID,
 		Step:       step,
 		ProcInstID: procInstID,
-		Company:    company,
+		Tenant:     tenant,
 	}
 	return SaveIdentitylinkTx(i, tx)
 	// var wg sync.WaitGroup
@@ -80,7 +80,7 @@ func AddCandidateUserTx(userID, company string, step, taskID, procInstID int, tx
 	// 		TaskID:     taskID,
 	// 		Step:       step,
 	// 		ProcInstID: procInstID,
-	// 		Company:    company,
+	// 		Tenant:    tenant,
 	// 	}
 	// 	err2 = SaveIdentitylinkTx(i, tx)
 	// }()
@@ -94,14 +94,14 @@ func AddCandidateUserTx(userID, company string, step, taskID, procInstID int, tx
 
 //AddParticipantTx AddParticipantTx
 // 添加任务参与人
-func AddParticipantTx(userID, username, company, comment string, taskID, procInstID, step int, tx *gorm.DB) error {
+func AddParticipantTx(userID, username, tenant, comment string, taskID, procInstID, step int, tx *gorm.DB) error {
 	i := &model.Identitylink{
 		Type:       model.IdentityTypes[model.PARTICIPANT],
 		UserID:     userID,
 		UserName:   username,
 		ProcInstID: procInstID,
 		Step:       step,
-		Company:    company,
+		Tenant:     tenant,
 		TaskID:     taskID,
 		Comment:    comment,
 	}
@@ -110,8 +110,8 @@ func AddParticipantTx(userID, username, company, comment string, taskID, procIns
 
 // IfParticipantByTaskID IfParticipantByTaskID
 // 针对指定任务判断用户是否已经审批过了
-func IfParticipantByTaskID(userID, company string, taskID int) (bool, error) {
-	return model.IfParticipantByTaskID(userID, company, taskID)
+func IfParticipantByTaskID(userID, tenant string, taskID int) (bool, error) {
+	return model.IfParticipantByTaskID(userID, tenant, taskID)
 }
 
 // DelCandidateByProcInstID DelCandidateByProcInstID

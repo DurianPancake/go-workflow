@@ -8,21 +8,22 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/flow"
+	"go-workflow/workflow-engine/flow"
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/model"
 	"github.com/mumushuiding/util"
+	"go-workflow/workflow-engine/model"
 )
 
 // TaskReceiver 任务
 type TaskReceiver struct {
-	TaskID     int    `json:"taskID"`
-	UserID     string `json:"userID,omitempty"`
-	UserName   string `json:"username,omitempty"`
-	Pass       string `json:"pass,omitempty"`
-	Company    string `json:"company,omitempty"`
+	TaskID   int    `json:"taskID"`
+	UserID   string `json:"userID,omitempty"`
+	UserName string `json:"username,omitempty"`
+	Pass     string `json:"pass,omitempty"`
+	// todo 改成tenant
+	Tenant     string `json:"tenant,omitempty"`
 	ProcInstID int    `json:"procInstID,omitempty"`
 	Comment    string `json:"comment,omitempty"`
 	Candidate  string `json:"candidate,omitempty"`
@@ -74,7 +75,7 @@ func CompleteByToken(token string, receiver *TaskReceiver) error {
 	if err != nil {
 		return err
 	}
-	err = Complete(receiver.TaskID, userinfo.ID, userinfo.Username, userinfo.Company, receiver.Comment, receiver.Candidate, pass)
+	err = Complete(receiver.TaskID, userinfo.ID, userinfo.Username, userinfo.Tenant, receiver.Comment, receiver.Candidate, pass)
 	if err != nil {
 		return err
 	}
@@ -83,9 +84,9 @@ func CompleteByToken(token string, receiver *TaskReceiver) error {
 
 // Complete Complete
 // 审批
-func Complete(taskID int, userID, username, company, comment, candidate string, pass bool) error {
+func Complete(taskID int, userID, username, tenant, comment, candidate string, pass bool) error {
 	tx := model.GetTx()
-	err := CompleteTaskTx(taskID, userID, username, company, comment, candidate, pass, tx)
+	err := CompleteTaskTx(taskID, userID, username, tenant, comment, candidate, pass, tx)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -141,7 +142,7 @@ func UpdateTaskWhenComplete(taskID int, userID string, pass bool, tx *gorm.DB) (
 
 // CompleteTaskTx CompleteTaskTx
 // 执行任务
-func CompleteTaskTx(taskID int, userID, username, company, comment, candidate string, pass bool, tx *gorm.DB) error {
+func CompleteTaskTx(taskID int, userID, username, tenant, comment, candidate string, pass bool, tx *gorm.DB) error {
 
 	//更新任务
 	task, err := UpdateTaskWhenComplete(taskID, userID, pass, tx)
@@ -152,7 +153,7 @@ func CompleteTaskTx(taskID int, userID, username, company, comment, candidate st
 	if task.ActType == "and" {
 		// fmt.Println("------------------是会签，判断用户是否已经审批过了，避免重复审批-------")
 		// 判断用户是否已经审批过了（存在会签的情况）
-		yes, err := IfParticipantByTaskID(userID, company, taskID)
+		yes, err := IfParticipantByTaskID(userID, tenant, taskID)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -166,7 +167,7 @@ func CompleteTaskTx(taskID int, userID, username, company, comment, candidate st
 	// 查看任务的未审批人数是否为0，不为0就不流转
 	if task.UnCompleteNum > 0 && pass == true { // 默认是全部通过
 		// 添加参与人
-		err := AddParticipantTx(userID, username, company, comment, task.ID, task.ProcInstID, task.Step, tx)
+		err := AddParticipantTx(userID, username, tenant, comment, task.ID, task.ProcInstID, task.Step, tx)
 		if err != nil {
 			return err
 		}
@@ -177,7 +178,7 @@ func CompleteTaskTx(taskID int, userID, username, company, comment, candidate st
 	// if err != nil {
 	// 	return err
 	// }
-	err = MoveStageByProcInstID(userID, username, company, comment, candidate, task.ID, task.ProcInstID, task.Step, pass, tx)
+	err = MoveStageByProcInstID(userID, username, tenant, comment, candidate, task.ID, task.ProcInstID, task.Step, pass, tx)
 	if err != nil {
 		return err
 	}
@@ -197,14 +198,14 @@ func WithDrawTaskByToken(token string, receiver *TaskReceiver) error {
 	if len(userinfo.Username) == 0 {
 		return errors.New("保存在redis中的【用户信息 userinfo】字段 username 不能为空！！")
 	}
-	if len(userinfo.Company) == 0 {
-		return errors.New("保存在redis中的【用户信息 userinfo】字段 company 不能为空")
+	if len(userinfo.Tenant) == 0 {
+		return errors.New("保存在redis中的【用户信息 userinfo】字段 tenant 不能为空")
 	}
-	return WithDrawTask(receiver.TaskID, receiver.ProcInstID, userinfo.ID, userinfo.Username, userinfo.Company, receiver.Comment)
+	return WithDrawTask(receiver.TaskID, receiver.ProcInstID, userinfo.ID, userinfo.Username, userinfo.Tenant, receiver.Comment)
 }
 
 // WithDrawTask 撤回任务
-func WithDrawTask(taskID, procInstID int, userID, username, company, comment string) error {
+func WithDrawTask(taskID, procInstID int, userID, username, tenant, comment string) error {
 	var err1, err2 error
 	var currentTask, lastTask *model.Task
 	var timesx time.Time
@@ -267,7 +268,7 @@ func WithDrawTask(taskID, procInstID int, userID, username, company, comment str
 		return err
 	}
 	// 撤回
-	err = MoveStageByProcInstID(userID, username, company, comment, "", currentTask.ID, procInstID, currentTask.Step, pass, tx)
+	err = MoveStageByProcInstID(userID, username, tenant, comment, "", currentTask.ID, procInstID, currentTask.Step, pass, tx)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -278,19 +279,19 @@ func WithDrawTask(taskID, procInstID int, userID, username, company, comment str
 }
 
 // MoveStageByProcInstID MoveStageByProcInstID
-func MoveStageByProcInstID(userID, username, company, comment, candidate string, taskID, procInstID, step int, pass bool, tx *gorm.DB) (err error) {
+func MoveStageByProcInstID(userID, username, tenant, comment, candidate string, taskID, procInstID, step int, pass bool, tx *gorm.DB) (err error) {
 	nodeInfos, err := GetExecNodeInfosByProcInstID(procInstID)
 	if err != nil {
 		return err
 	}
-	return MoveStage(nodeInfos, userID, username, company, comment, candidate, taskID, procInstID, step, pass, tx)
+	return MoveStage(nodeInfos, userID, username, tenant, comment, candidate, taskID, procInstID, step, pass, tx)
 }
 
 // MoveStage MoveStage
 // 流程流转
-func MoveStage(nodeInfos []*flow.NodeInfo, userID, username, company, comment, candidate string, taskID, procInstID, step int, pass bool, tx *gorm.DB) (err error) {
+func MoveStage(nodeInfos []*flow.NodeInfo, userID, username, tenant, comment, candidate string, taskID, procInstID, step int, pass bool, tx *gorm.DB) (err error) {
 	// 添加上一步的参与人
-	err = AddParticipantTx(userID, username, company, comment, taskID, procInstID, step, tx)
+	err = AddParticipantTx(userID, username, tenant, comment, taskID, procInstID, step, tx)
 	if err != nil {
 		return err
 	}
@@ -326,21 +327,21 @@ func MoveStage(nodeInfos []*flow.NodeInfo, userID, username, company, comment, c
 			return err
 		}
 		// 添加抄送人
-		err = AddNotifierTx(nodeInfos[step].Aprover, company, step, procInstID, tx)
+		err = AddNotifierTx(nodeInfos[step].Aprover, tenant, step, procInstID, tx)
 		if err != nil {
 			return err
 		}
-		return MoveStage(nodeInfos, userID, username, company, comment, candidate, taskID, procInstID, step, pass, tx)
+		return MoveStage(nodeInfos, userID, username, tenant, comment, candidate, taskID, procInstID, step, pass, tx)
 	}
 	if pass {
-		return MoveToNextStage(nodeInfos, userID, company, taskID, procInstID, step, tx)
+		return MoveToNextStage(nodeInfos, userID, tenant, taskID, procInstID, step, tx)
 	}
-	return MoveToPrevStage(nodeInfos, userID, company, taskID, procInstID, step, tx)
+	return MoveToPrevStage(nodeInfos, userID, tenant, taskID, procInstID, step, tx)
 }
 
 // MoveToNextStage MoveToNextStage
 //通过
-func MoveToNextStage(nodeInfos []*flow.NodeInfo, userID, company string, currentTaskID, procInstID, step int, tx *gorm.DB) error {
+func MoveToNextStage(nodeInfos []*flow.NodeInfo, userID, tenant string, currentTaskID, procInstID, step int, tx *gorm.DB) error {
 	var currentTime = util.FormatDate(time.Now(), util.YYYY_MM_DD_HH_MM_SS)
 	var task = getNewTask(nodeInfos, step, procInstID, currentTime) //新任务
 	var procInst = &model.ProcInst{                                 // 流程实例要更新的字段
@@ -355,7 +356,7 @@ func MoveToNextStage(nodeInfos []*flow.NodeInfo, userID, company string, current
 			return err
 		}
 		// 添加candidate group
-		err = AddCandidateGroupTx(nodeInfos[step].Aprover, company, step, taksID, procInstID, tx)
+		err = AddCandidateGroupTx(nodeInfos[step].Aprover, tenant, step, taksID, procInstID, tx)
 		if err != nil {
 			return err
 		}
@@ -393,7 +394,7 @@ func MoveToNextStage(nodeInfos []*flow.NodeInfo, userID, company string, current
 
 // MoveToPrevStage MoveToPrevStage
 // 驳回
-func MoveToPrevStage(nodeInfos []*flow.NodeInfo, userID, company string, currentTaskID, procInstID, step int, tx *gorm.DB) error {
+func MoveToPrevStage(nodeInfos []*flow.NodeInfo, userID, tenant string, currentTaskID, procInstID, step int, tx *gorm.DB) error {
 	// 生成新的任务
 	var task = getNewTask(nodeInfos, step, procInstID, util.FormatDate(time.Now(), util.YYYY_MM_DD_HH_MM_SS)) //新任务
 	taksID, err := task.NewTaskTx(tx)
@@ -411,19 +412,20 @@ func MoveToPrevStage(nodeInfos []*flow.NodeInfo, userID, company string, current
 		return err
 	}
 	if step == 0 { // 流程回到起始位置，注意起始位置为0,
-		err = AddCandidateUserTx(nodeInfos[step].Aprover, company, step, taksID, procInstID, tx)
+		err = AddCandidateUserTx(nodeInfos[step].Aprover, tenant, step, taksID, procInstID, tx)
 		if err != nil {
 			return err
 		}
 		return nil
 	}
 	// 添加candidate group
-	err = AddCandidateGroupTx(nodeInfos[step].Aprover, company, step, taksID, procInstID, tx)
+	err = AddCandidateGroupTx(nodeInfos[step].Aprover, tenant, step, taksID, procInstID, tx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
 func getNewTask(nodeInfos []*flow.NodeInfo, step, procInstID int, currentTime string) *model.Task {
 	var task = &model.Task{ // 新任务
 		NodeID:        nodeInfos[step].NodeID,

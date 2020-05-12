@@ -3,12 +3,12 @@ package service
 import (
 	"github.com/mumushuiding/util"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/model"
+	"go-workflow/workflow-engine/model"
 )
 
 // UserInfo 用户信息
 type UserInfo struct {
-	Company string `json:"company"`
+	Tenant string `json:"tenant"`
 	// 用户所属部门
 	Department string `json:"department"`
 	Username   string `json:"username"`

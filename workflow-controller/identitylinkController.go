@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/service"
 	"github.com/mumushuiding/util"
+	"go-workflow/workflow-engine/service"
 )
 
 // FindParticipantByProcInstID 根据流程id查询流程参与者

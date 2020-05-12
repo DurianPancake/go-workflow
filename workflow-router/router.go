@@ -3,8 +3,8 @@ package router
 import (
 	"net/http"
 
-	config "github.com/go-workflow/go-workflow/workflow-config"
-	controller "github.com/go-workflow/go-workflow/workflow-controller"
+	config "go-workflow/workflow-config"
+	controller "go-workflow/workflow-controller"
 )
 
 // Mux 路由

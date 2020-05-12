@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/service"
+	"go-workflow/workflow-engine/service"
 
 	"github.com/mumushuiding/util"
 )
@@ -60,8 +60,8 @@ func SaveProcdef(writer http.ResponseWriter, request *http.Request) {
 		util.ResponseErr(writer, "字段 userid 不能为空")
 		return
 	}
-	if len(procdef.Company) == 0 {
-		util.ResponseErr(writer, "字段 company 不能为空")
+	if len(procdef.Tenant) == 0 {
+		util.ResponseErr(writer, "字段 tenant 不能为空")
 		return
 	}
 	if len(procdef.Name) == 0 {

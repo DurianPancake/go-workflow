@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/model"
+	"go-workflow/workflow-engine/model"
 
 	"github.com/mumushuiding/util"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/service"
+	"go-workflow/workflow-engine/service"
 )
 
 // StartProcessInstanceByToken 启动流程
@@ -51,10 +51,10 @@ func StartProcessInstance(writer http.ResponseWriter, request *http.Request) {
 		util.ResponseErr(writer, "只支持Post方法！！Only suppoert Post ")
 		return
 	}
-	if model.RedisOpen {
-		util.ResponseErr(writer, "已经连接 redis，请使用/workflow/process/startByToken 路径访问")
-		return
-	}
+	//if model.RedisOpen {
+	//	util.ResponseErr(writer, "已经连接 redis，请使用/workflow/process/startByToken 路径访问")
+	//	return
+	//}
 	var proc = service.ProcessReceiver{}
 	err := util.Body2Struct(request, &proc)
 	if err != nil {
@@ -65,8 +65,8 @@ func StartProcessInstance(writer http.ResponseWriter, request *http.Request) {
 		util.Response(writer, "流程定义名procName不能为空", false)
 		return
 	}
-	if len(proc.Company) == 0 {
-		util.Response(writer, "用户所在的公司company不能为空", false)
+	if len(proc.Tenant) == 0 {
+		util.Response(writer, "用户所在的公司tenant不能为空", false)
 		return
 	}
 	if len(proc.UserID) == 0 {
@@ -110,8 +110,8 @@ func FindMyProcInstPageAsJSON(writer http.ResponseWriter, request *http.Request)
 		util.Response(writer, "用户userID不能为空", false)
 		return
 	}
-	if len(receiver.Company) == 0 {
-		util.Response(writer, "字段 company 不能为空", false)
+	if len(receiver.Tenant) == 0 {
+		util.Response(writer, "字段 tenant 不能为空", false)
 		return
 	}
 	result, err := service.FindAllPageAsJSON(receiver)
@@ -169,8 +169,8 @@ func StartByMyself(writer http.ResponseWriter, request *http.Request) {
 		util.Response(writer, "用户userID不能为空", false)
 		return
 	}
-	if len(receiver.Company) == 0 {
-		util.Response(writer, "字段 company 不能为空", false)
+	if len(receiver.Tenant) == 0 {
+		util.Response(writer, "字段 tenant 不能为空", false)
 		return
 	}
 	result, err := service.StartByMyself(receiver)
@@ -196,8 +196,8 @@ func FindProcNotify(writer http.ResponseWriter, request *http.Request) {
 		util.Response(writer, "用户userID不能为空", false)
 		return
 	}
-	if len(receiver.Company) == 0 {
-		util.Response(writer, "字段 company 不能为空", false)
+	if len(receiver.Tenant) == 0 {
+		util.Response(writer, "字段 tenant 不能为空", false)
 		return
 	}
 	result, err := service.FindProcNotify(receiver)

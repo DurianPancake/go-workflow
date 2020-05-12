@@ -7,9 +7,9 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/flow"
-	"github.com/go-workflow/go-workflow/workflow-engine/model"
 	"github.com/mumushuiding/util"
+	"go-workflow/workflow-engine/flow"
+	"go-workflow/workflow-engine/model"
 )
 
 // ProcessReceiver 接收页面传递参数
@@ -17,7 +17,7 @@ type ProcessReceiver struct {
 	UserID     string             `json:"userId"`
 	ProcInstID string             `json:"procInstID"`
 	Username   string             `json:"username"`
-	Company    string             `json:"company"`
+	Tenant     string             `json:"tenant"`
 	ProcName   string             `json:"procName"`
 	Title      string             `json:"title"`
 	Department string             `json:"department"`
@@ -33,7 +33,7 @@ type ProcessPageReceiver struct {
 	Groups     []string `josn:"groups"`
 	UserID     string   `json:"userID"`
 	Username   string   `json:"username"`
-	Company    string   `json:"company"`
+	Tenant     string   `json:"tenant"`
 	ProcName   string   `json:"procName"`
 	ProcInstID string   `json:"procInstID"`
 }
@@ -50,7 +50,7 @@ func GetDefaultProcessPageReceiver() *ProcessPageReceiver {
 func findAll(pr *ProcessPageReceiver) ([]*model.ProcInst, int, error) {
 	var page = util.Page{}
 	page.PageRequest(pr.PageIndex, pr.PageSize)
-	return model.FindProcInsts(pr.UserID, pr.ProcName, pr.Company, pr.Groups, pr.Departments, pr.PageIndex, pr.PageSize)
+	return model.FindProcInsts(pr.UserID, pr.ProcName, pr.Tenant, pr.Groups, pr.Departments, pr.PageIndex, pr.PageSize)
 }
 
 // FindProcInstByID FindProcInstByID
@@ -79,13 +79,13 @@ func FindMyProcInstByToken(token string, receiver *ProcessPageReceiver) (string,
 	if err != nil {
 		return "", err
 	}
-	if len(userinfo.Company) == 0 {
-		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 company 不能为空")
+	if len(userinfo.Tenant) == 0 {
+		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 tenant 不能为空")
 	}
 	if len(userinfo.ID) == 0 {
 		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 ID 不能为空")
 	}
-	receiver.Company = userinfo.Company
+	receiver.Tenant = userinfo.Tenant
 	receiver.Departments = userinfo.Departments
 	receiver.Groups = userinfo.Roles
 	receiver.UserID = userinfo.ID
@@ -101,8 +101,8 @@ func StartProcessInstanceByToken(token string, p *ProcessReceiver) (int, error) 
 	if err != nil {
 		return 0, err
 	}
-	if len(userinfo.Company) == 0 {
-		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 company 不能为空")
+	if len(userinfo.Tenant) == 0 {
+		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 tenant 不能为空")
 	}
 	if len(userinfo.Username) == 0 {
 		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 username 不能为空")
@@ -113,7 +113,7 @@ func StartProcessInstanceByToken(token string, p *ProcessReceiver) (int, error) 
 	if len(userinfo.Department) == 0 {
 		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 department 不能为空")
 	}
-	p.Company = userinfo.Company
+	p.Tenant = userinfo.Tenant
 	p.Department = userinfo.Department
 	p.UserID = userinfo.ID
 	p.Username = userinfo.Username
@@ -125,7 +125,7 @@ func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) 
 	// times := time.Now()
 	// runtime.GOMAXPROCS(2)
 	// 获取流程定义
-	node, prodefID, procdefName, err := GetResourceByNameAndCompany(p.ProcName, p.Company)
+	node, prodefID, procdefName, err := GetResourceByNameAndCompany(p.ProcName, p.Tenant)
 	if err != nil {
 		return 0, err
 	}
@@ -142,7 +142,7 @@ func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) 
 		StartTime:     util.FormatDate(time.Now(), util.YYYY_MM_DD_HH_MM_SS),
 		StartUserID:   p.UserID,
 		StartUserName: p.Username,
-		Company:       p.Company,
+		Tenant:        p.Tenant,
 	} //开启事务
 	// times = time.Now()
 	procInstID, err := CreateProcInstTx(&procInst, tx) // 事务
@@ -192,7 +192,7 @@ func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) 
 	//--------------------流转------------------
 	// times = time.Now()
 	// 流程移动到下一环节
-	err = MoveStage(nodeinfos, p.UserID, p.Username, p.Company, "启动流程", "", task.ID, procInstID, step, true, tx)
+	err = MoveStage(nodeinfos, p.UserID, p.Username, p.Tenant, "启动流程", "", task.ID, procInstID, step, true, tx)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -234,7 +234,7 @@ func SetProcInstFinish(procInstID int, endTime string, tx *gorm.DB) error {
 func StartByMyself(receiver *ProcessPageReceiver) (string, error) {
 	var page = util.Page{}
 	page.PageRequest(receiver.PageIndex, receiver.PageSize)
-	datas, count, err := model.StartByMyself(receiver.UserID, receiver.Company, receiver.PageIndex, receiver.PageSize)
+	datas, count, err := model.StartByMyself(receiver.UserID, receiver.Tenant, receiver.PageIndex, receiver.PageSize)
 	if err != nil {
 		return "", err
 	}
@@ -245,7 +245,7 @@ func StartByMyself(receiver *ProcessPageReceiver) (string, error) {
 func FindProcNotify(receiver *ProcessPageReceiver) (string, error) {
 	var page = util.Page{}
 	page.PageRequest(receiver.PageIndex, receiver.PageSize)
-	datas, count, err := model.FindProcNotify(receiver.UserID, receiver.Company, receiver.Groups, receiver.PageIndex, receiver.PageSize)
+	datas, count, err := model.FindProcNotify(receiver.UserID, receiver.Tenant, receiver.Groups, receiver.PageIndex, receiver.PageSize)
 	if err != nil {
 		return "", err
 	}

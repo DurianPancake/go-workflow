@@ -11,16 +11,12 @@ import (
 func CronJobs() {
 	go func() {
 		c := cron.New()
-		// 每隔 20 秒执行
-		spec := "*/20 * * * * ?"
+		// 每隔 20 秒执行 // 0 0 0 * * ? 为每天0时
+		spec := "0 0 0 * * ?"
 		//每隔20秒将已经结束的流程数据迁移至历史数据表
 		c.AddFunc(spec, func() {
 			MoveFinishedProcInstToHistory()
 		})
-		// c.AddFunc("*/5 * * * * ?", func() {
-		// 	log.Println("cron running")
-		// })
-		// 启动
 		c.Start()
 		log.Println("----------启动定时任务------------")
 		defer c.Stop()

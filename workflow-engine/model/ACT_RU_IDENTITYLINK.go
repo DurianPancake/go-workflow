@@ -14,7 +14,7 @@ type Identitylink struct {
 	TaskID     int    `json:"taskID,omitempty"`
 	Step       int    `json:"step"`
 	ProcInstID int    `json:"procInstID,omitempty"`
-	Company    string `json:"company,omitempty"`
+	Tenant     string `json:"tenant,omitempty"`
 	Comment    string `json:"comment,omitempty"`
 }
 
@@ -37,8 +37,8 @@ var IdentityTypes = [...]string{CANDIDATE: "candidate", PARTICIPANT: "participan
 
 // SaveTx SaveTx
 func (i *Identitylink) SaveTx(tx *gorm.DB) error {
-	// if len(i.Company) == 0 {
-	// 	return errors.New("Identitylink表的company字段不能为空！！")
+	// if len(i.Tenant) == 0 {
+	// 	return errors.New("Identitylink表的tenant字段不能为空！！")
 	// }
 	err := tx.Create(i).Error
 	return err
@@ -68,9 +68,9 @@ func ExistsNotifierByProcInstIDAndGroup(procInstID int, group string) (bool, err
 
 // IfParticipantByTaskID IfParticipantByTaskID
 // 针对指定任务判断用户是否已经审批过了
-func IfParticipantByTaskID(userID, company string, taskID int) (bool, error) {
+func IfParticipantByTaskID(userID, tenant string, taskID int) (bool, error) {
 	var count int
-	err := db.Model(&Identitylink{}).Where("user_id=? and company=? and task_id=?", userID, company, taskID).Count(&count).Error
+	err := db.Model(&Identitylink{}).Where("user_id=? and tenant=? and task_id=?", userID, tenant, taskID).Count(&count).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return false, nil

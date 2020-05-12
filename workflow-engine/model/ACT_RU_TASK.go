@@ -14,8 +14,8 @@ import (
 // Owner 任务拥有人
 type Task struct {
 	Model
-	// Company 任务创建人对应的公司
-	// Company string `json:"company"`
+	// Tenant 任务创建人对应的公司
+	// Tenant string `json:"tenant"`
 	// ExecutionID     string `json:"executionID"`
 	// 当前执行流所在的节点
 	NodeID string `json:"nodeId"`
@@ -26,7 +26,7 @@ type Task struct {
 	CreateTime string `json:"createTime"`
 	ClaimTime  string `json:"claimTime"`
 	// 还未审批的用户数，等于0代表会签已经全部审批结束，默认值为1
-	MemberCount   int8 `json:"memberCount" gorm:"default:1"`
+	MemberCount   int8 `json:"memberCount" 	gorm:"default:1"`
 	UnCompleteNum int8 `json:"unCompleteNum" gorm:"default:1"`
 	//审批通过数
 	AgreeNum int8 `json:"agreeNum"`

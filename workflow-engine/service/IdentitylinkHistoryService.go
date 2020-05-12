@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/go-workflow/go-workflow/workflow-engine/model"
 	"github.com/mumushuiding/util"
+	"go-workflow/workflow-engine/model"
 )
 
 // FindParticipantHistoryByProcInstID 历史纪录查询

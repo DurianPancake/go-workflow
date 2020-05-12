@@ -24,6 +24,8 @@ type Node struct {
 	ChildNode      *Node           `json:"childNode,omitempty"`
 	ConditionNodes []*Node         `json:"conditionNodes,omitempty"`
 	Properties     *NodeProperties `json:"properties,omitempty"`
+	// 可编辑的结点，多人协作的开关
+	Editable bool `json:"editable,omitempty"`
 }
 
 // ActionConditionType 条件类型
@@ -295,6 +297,8 @@ func GetConditionNode(nodes []*Node, maps *map[string]string) (result *Node, err
 		// 满足所有条件
 		if flag == len(node.Properties.Conditions[0]) {
 			result = node
+			// return
+			return
 		}
 	}
 	return result, nil

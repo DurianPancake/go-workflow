@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/model"
+	"go-workflow/workflow-engine/model"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/service"
+	"go-workflow/workflow-engine/service"
 
 	"github.com/mumushuiding/util"
 )
@@ -38,11 +38,11 @@ func WithDrawTask(writer http.ResponseWriter, request *http.Request) {
 		util.ResponseErr(writer, "字段 procInstID 不能为空,必须为数字！")
 		return
 	}
-	if len(taskRe.Company) == 0 {
-		util.ResponseErr(writer, "字段company不能为空！")
+	if len(taskRe.Tenant) == 0 {
+		util.ResponseErr(writer, "字段tenant不能为空！")
 		return
 	}
-	err = service.WithDrawTask(taskRe.TaskID, taskRe.ProcInstID, taskRe.UserID, taskRe.UserName, taskRe.Company, taskRe.Comment)
+	err = service.WithDrawTask(taskRe.TaskID, taskRe.ProcInstID, taskRe.UserID, taskRe.UserName, taskRe.Tenant, taskRe.Comment)
 	if err != nil {
 		util.ResponseErr(writer, err)
 		return
@@ -166,11 +166,11 @@ func CompleteTask(writer http.ResponseWriter, request *http.Request) {
 		util.ResponseErr(writer, "字段username不能为空！")
 		return
 	}
-	if len(taskRe.Company) == 0 {
-		util.ResponseErr(writer, "字段company不能为空！")
+	if len(taskRe.Tenant) == 0 {
+		util.ResponseErr(writer, "字段tenant不能为空！")
 		return
 	}
-	err = service.Complete(taskRe.TaskID, taskRe.UserID, taskRe.UserName, taskRe.Company, taskRe.Comment, taskRe.Candidate, pass)
+	err = service.Complete(taskRe.TaskID, taskRe.UserID, taskRe.UserName, taskRe.Tenant, taskRe.Comment, taskRe.Candidate, pass)
 	if err != nil {
 		util.ResponseErr(writer, err)
 		return

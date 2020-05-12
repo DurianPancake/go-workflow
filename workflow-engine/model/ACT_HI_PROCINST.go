@@ -16,9 +16,10 @@ type ProcInst struct {
 	ProcDefName string `json:"procDefName"`
 	// title 标题
 	Title string `json:"title"`
-	// 用户部门
+	// 用户部门 todo 获取部门直属领导或主管 、或者去除该字段
 	Department string `json:"department"`
-	Company    string `json:"company"`
+	// 公司已改为tenant
+	Tenant string `json:"tenant"`
 	// 当前节点
 	NodeID string `json:"nodeID"`
 	// 审批人
@@ -58,10 +59,10 @@ func DepartmentsNotNull(departments []string, sql string) func(db *gorm.DB) *gor
 }
 
 // StartByMyself 我发起的流程
-func StartByMyself(userID, company string, pageIndex, pageSize int) ([]*ProcInst, int, error) {
+func StartByMyself(userID, tenant string, pageIndex, pageSize int) ([]*ProcInst, int, error) {
 	maps := map[string]interface{}{
 		"start_user_id": userID,
-		"company":       company,
+		"tenant":        tenant,
 	}
 	return findProcInsts(maps, pageIndex, pageSize)
 }
@@ -77,7 +78,7 @@ func FindProcInstByID(id int) (*ProcInst, error) {
 }
 
 // FindProcNotify 查询抄送我的流程
-func FindProcNotify(userID, company string, groups []string, pageIndex, pageSize int) ([]*ProcInst, int, error) {
+func FindProcNotify(userID, tenant string, groups []string, pageIndex, pageSize int) ([]*ProcInst, int, error) {
 	var datas []*ProcInst
 	var count int
 	var sql string
@@ -86,9 +87,9 @@ func FindProcNotify(userID, company string, groups []string, pageIndex, pageSize
 		for _, val := range groups {
 			s = append(s, "\""+val+"\"")
 		}
-		sql = "select proc_inst_id from identitylink i where i.type='notifier' and i.company='" + company + "' and (i.user_id='" + userID + "' or i.group in (" + strings.Join(s, ",") + "))"
+		sql = "select proc_inst_id from identitylink i where i.type='notifier' and i.tenant='" + tenant + "' and (i.user_id='" + userID + "' or i.group in (" + strings.Join(s, ",") + "))"
 	} else {
-		sql = "select proc_inst_id from identitylink i where i.type='notifier' and i.company='" + company + "' and i.user_id='" + userID + "'"
+		sql = "select proc_inst_id from identitylink i where i.type='notifier' and i.tenant='" + tenant + "' and i.user_id='" + userID + "'"
 	}
 	err := db.Where("id in (" + sql + ")").Offset((pageIndex - 1) * pageSize).Limit(pageSize).Order("start_time desc").Find(&datas).Error
 	if err != nil {
@@ -137,10 +138,10 @@ func findProcInsts(maps map[string]interface{}, pageIndex, pageSize int) ([]*Pro
 
 // FindProcInsts FindProcInsts
 // 分页查询
-func FindProcInsts(userID, procName, company string, groups, departments []string, pageIndex, pageSize int) ([]*ProcInst, int, error) {
+func FindProcInsts(userID, procName, tenant string, groups, departments []string, pageIndex, pageSize int) ([]*ProcInst, int, error) {
 	var datas []*ProcInst
 	var count int
-	var sql = " company='" + company + "' and is_finished=0 "
+	var sql = " tenant='" + tenant + "' and is_finished=0 "
 	if len(procName) > 0 {
 		sql += "and proc_def_name='" + procName + "'"
 	}

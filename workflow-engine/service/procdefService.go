@@ -5,11 +5,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/flow"
+	"go-workflow/workflow-engine/flow"
 
 	"github.com/mumushuiding/util"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/model"
+	"go-workflow/workflow-engine/model"
 )
 
 var saveLock sync.Mutex
@@ -22,8 +22,8 @@ type Procdef struct {
 	// 用户id
 	Userid   string `json:"userid"`
 	Username string `json:"username"`
-	// 用户所在公司
-	Company   string `json:"company"`
+	// 用户所在公司 todo 改成tenant
+	Tenant    string `json:"tenant"`
 	PageSize  int    `json:"pageSize"`
 	PageIndex int    `json:"pageIndex"`
 }
@@ -35,14 +35,14 @@ func GetProcdefByID(id int) (*model.Procdef, error) {
 
 // GetProcdefLatestByNameAndCompany GetProcdefLatestByNameAndCompany
 // 根据流程定义名字和公司查询流程定义
-func GetProcdefLatestByNameAndCompany(name, company string) (*model.Procdef, error) {
-	return model.GetProcdefLatestByNameAndCompany(name, company)
+func GetProcdefLatestByNameAndCompany(name, tenant string) (*model.Procdef, error) {
+	return model.GetProcdefLatestByNameAndCompany(name, tenant)
 }
 
 // GetResourceByNameAndCompany GetResourceByNameAndCompany
 // 获取流程定义配置信息
-func GetResourceByNameAndCompany(name, company string) (*flow.Node, int, string, error) {
-	prodef, err := GetProcdefLatestByNameAndCompany(name, company)
+func GetResourceByNameAndCompany(name, tenant string) (*flow.Node, int, string, error) {
+	prodef, err := GetProcdefLatestByNameAndCompany(name, tenant)
 	if err != nil {
 		return nil, 0, "", err
 	}
@@ -73,8 +73,8 @@ func (p *Procdef) SaveProcdefByToken(token string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	if len(userinfo.Company) == 0 {
-		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 company 不能为空")
+	if len(userinfo.Tenant) == 0 {
+		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 tenant 不能为空")
 	}
 	if len(userinfo.Username) == 0 {
 		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 username 不能为空")
@@ -82,7 +82,7 @@ func (p *Procdef) SaveProcdefByToken(token string) (int, error) {
 	if len(userinfo.ID) == 0 {
 		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 ID 不能为空")
 	}
-	p.Company = userinfo.Company
+	p.Tenant = userinfo.Tenant
 	p.Userid = userinfo.ID
 	p.Username = userinfo.Username
 	return p.SaveProcdef()
@@ -104,7 +104,7 @@ func (p *Procdef) SaveProcdef() (id int, err error) {
 		Name:     p.Name,
 		Userid:   p.Userid,
 		Username: p.Username,
-		Company:  p.Company,
+		Tenant:   p.Tenant,
 		Resource: resource,
 	}
 	return SaveProcdef(&procdef)
@@ -115,7 +115,7 @@ func SaveProcdef(p *model.Procdef) (id int, err error) {
 	// 参数是否为空判定
 	saveLock.Lock()
 	defer saveLock.Unlock()
-	old, err := GetProcdefLatestByNameAndCompany(p.Name, p.Company)
+	old, err := GetProcdefLatestByNameAndCompany(p.Name, p.Tenant)
 	if err != nil {
 		return 0, err
 	}
@@ -144,8 +144,8 @@ func SaveProcdef(p *model.Procdef) (id int, err error) {
 
 // ExistsProcdefByNameAndCompany if exists
 // 查询流程定义是否存在
-func ExistsProcdefByNameAndCompany(name, company string) (yes bool, version int, err error) {
-	p, err := GetProcdefLatestByNameAndCompany(name, company)
+func ExistsProcdefByNameAndCompany(name, tenant string) (yes bool, version int, err error) {
+	p, err := GetProcdefLatestByNameAndCompany(name, tenant)
 	if p == nil {
 		return false, 1, err
 	}
@@ -175,8 +175,8 @@ func (p *Procdef) getMaps() map[string]interface{} {
 	if len(p.Name) > 0 {
 		maps["name"] = p.Name
 	}
-	if len(p.Company) > 0 {
-		maps["company"] = p.Company
+	if len(p.Tenant) > 0 {
+		maps["tenant"] = p.Tenant
 	}
 	return maps
 }

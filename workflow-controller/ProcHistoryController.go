@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/model"
+	"go-workflow/workflow-engine/model"
 
-	"github.com/go-workflow/go-workflow/workflow-engine/service"
 	"github.com/mumushuiding/util"
+	"go-workflow/workflow-engine/service"
 )
 
 // FindProcHistoryByToken 查看我审批的纪录
@@ -59,8 +59,8 @@ func FindProcHistory(writer http.ResponseWriter, request *http.Request) {
 		util.Response(writer, "用户userID不能为空", false)
 		return
 	}
-	if len(receiver.Company) == 0 {
-		util.Response(writer, "字段 company 不能为空", false)
+	if len(receiver.Tenant) == 0 {
+		util.Response(writer, "字段 tenant 不能为空", false)
 		return
 	}
 	result, err := service.FindProcHistory(receiver)
@@ -87,8 +87,8 @@ func StartHistoryByMyself(writer http.ResponseWriter, request *http.Request) {
 		util.Response(writer, "用户userID不能为空", false)
 		return
 	}
-	if len(receiver.Company) == 0 {
-		util.Response(writer, "字段 company 不能为空", false)
+	if len(receiver.Tenant) == 0 {
+		util.Response(writer, "字段 tenant 不能为空", false)
 		return
 	}
 	result, err := service.StartHistoryByMyself(receiver)
@@ -114,8 +114,8 @@ func FindProcHistoryNotify(writer http.ResponseWriter, request *http.Request) {
 		util.Response(writer, "用户userID不能为空", false)
 		return
 	}
-	if len(receiver.Company) == 0 {
-		util.Response(writer, "字段 company 不能为空", false)
+	if len(receiver.Tenant) == 0 {
+		util.Response(writer, "字段 tenant 不能为空", false)
 		return
 	}
 	result, err := service.FindProcHistoryNotify(receiver)

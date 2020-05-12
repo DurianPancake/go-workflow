@@ -13,8 +13,10 @@ type Procdef struct {
 	Userid   string `json:"userid,omitempty"`
 	Username string `json:"username,omitempty"`
 	// 用户所在公司
-	Company    string `json:"company,omitempty"`
+	Tenant     string `json:"tenant,omitempty"`
 	DeployTime string `json:"deployTime,omitempty"`
+	// 流程定义的上下架控制
+	Enable bool `json:"enable" gorm:"default:'false'"`
 }
 
 // Save save and return id
@@ -36,11 +38,12 @@ func (p *Procdef) SaveTx(tx *gorm.DB) error {
 	return nil
 }
 
-// GetProcdefLatestByNameAndCompany :get latest procdef by name and company
+// TODO 引入上下架后，查询最新的流程逻辑需产品确认
+// GetProcdefLatestByNameAndCompany :get latest procdef by name and tenant
 // 根据名字和公司查询最新的流程定义
-func GetProcdefLatestByNameAndCompany(name, company string) (*Procdef, error) {
+func GetProcdefLatestByNameAndCompany(name, tenant string) (*Procdef, error) {
 	var p []*Procdef
-	err := db.Where("name=? and company=?", name, company).Order("version desc").Find(&p).Error
+	err := db.Where("name=? and tenant=?", name, tenant).Order("version desc").Find(&p).Error
 	if err != nil || len(p) == 0 {
 		return nil, err
 	}
