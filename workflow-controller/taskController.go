@@ -26,16 +26,16 @@ func WithDrawTask(writer http.ResponseWriter, request *http.Request) {
 	err := util.Body2Struct(request, &taskRe)
 	str, _ := util.ToJSONStr(taskRe)
 	log.Println(str)
-	if taskRe.TaskID == 0 {
-		util.ResponseErr(writer, "字段taskID不能为空,必须为数字！")
+	if taskRe.TaskID == "" {
+		util.ResponseErr(writer, "字段taskID不能为空！")
 		return
 	}
 	if len(taskRe.UserID) == 0 {
 		util.ResponseErr(writer, "字段userID不能为空！")
 		return
 	}
-	if taskRe.ProcInstID == 0 {
-		util.ResponseErr(writer, "字段 procInstID 不能为空,必须为数字！")
+	if taskRe.ProcInstID == "" {
+		util.ResponseErr(writer, "字段 procInstID 不能为空！")
 		return
 	}
 	if len(taskRe.Tenant) == 0 {
@@ -67,12 +67,12 @@ func WithDrawTaskByToken(writer http.ResponseWriter, request *http.Request) {
 	}
 	var taskRe = service.TaskReceiver{}
 	err := util.Body2Struct(request, &taskRe)
-	if taskRe.TaskID == 0 {
-		util.ResponseErr(writer, "字段taskID不能为空,必须为数字！")
+	if taskRe.TaskID == "" {
+		util.ResponseErr(writer, "字段taskID不能为空")
 		return
 	}
-	if taskRe.ProcInstID == 0 {
-		util.ResponseErr(writer, "字段 procInstID 不能为空,必须为数字！")
+	if taskRe.ProcInstID == "" {
+		util.ResponseErr(writer, "字段 procInstID 不能为空")
 		return
 	}
 	err = service.WithDrawTaskByToken(token, &taskRe)
@@ -114,7 +114,7 @@ func CompleteTaskByToken(writer http.ResponseWriter, request *http.Request) {
 		util.ResponseErr(writer, "字段pass不能为空！")
 		return
 	}
-	if taskRe.TaskID == 0 {
+	if taskRe.TaskID == "" {
 		util.ResponseErr(writer, "字段taskID不能为空！")
 		return
 	}
@@ -154,7 +154,7 @@ func CompleteTask(writer http.ResponseWriter, request *http.Request) {
 		util.ResponseErr(writer, err)
 		return
 	}
-	if taskRe.TaskID == 0 {
+	if taskRe.TaskID == "" {
 		util.ResponseErr(writer, "字段taskID不能为空！")
 		return
 	}

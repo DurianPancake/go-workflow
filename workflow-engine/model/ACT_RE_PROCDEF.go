@@ -21,10 +21,10 @@ type Procdef struct {
 
 // Save save and return id
 // 保存并返回ID
-func (p *Procdef) Save() (ID int, err error) {
+func (p *Procdef) Save() (ID string, err error) {
 	err = db.Create(p).Error
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	return p.ID, nil
 }
@@ -65,7 +65,7 @@ func DelProcdefByID(id int) error {
 }
 
 // DelProcdefByIDTx DelProcdefByIDTx
-func DelProcdefByIDTx(id int, tx *gorm.DB) error {
+func DelProcdefByIDTx(id string, tx *gorm.DB) error {
 	return tx.Where("id = ?", id).Delete(&Procdef{}).Error
 }
 
@@ -84,7 +84,7 @@ func FindProcdefsWithCountAndPaged(pageIndex, pageSize int, maps map[string]inte
 }
 
 // MoveProcdefToHistoryByIDTx 将流程定义移至历史纪录表
-func MoveProcdefToHistoryByIDTx(ID int, tx *gorm.DB) error {
+func MoveProcdefToHistoryByIDTx(ID string, tx *gorm.DB) error {
 	err := tx.Exec("insert into procdef_history select * from procdef where id=?", ID).Error
 	if err != nil {
 		return err

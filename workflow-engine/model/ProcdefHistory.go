@@ -6,10 +6,10 @@ type ProcdefHistory struct {
 }
 
 // Save Save
-func (p *ProcdefHistory) Save() (ID int, err error) {
+func (p *ProcdefHistory) Save() (ID string, err error) {
 	err = db.Create(p).Error
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	return p.ID, nil
 }

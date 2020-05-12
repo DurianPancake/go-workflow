@@ -13,9 +13,10 @@ import (
 // ProcDefID 流程定义数据的ID
 type Execution struct {
 	Model
-	Rev         int    `json:"rev"`
-	ProcInstID  int    `json:"procInstID"`
-	ProcDefID   int    `json:"procDefID"`
+	Rev        int    `json:"rev"`
+	ProcInstID string `json:"procInstID"`
+	ProcDefID  string `json:"procDefID"`
+	// todo 检查为什么流程名称没有写上去
 	ProcDefName string `json:"procDefName"`
 	// NodeInfos 执行流经过的所有节点
 	NodeInfos string `gorm:"size:4000" json:"nodeInfos"`
@@ -24,27 +25,27 @@ type Execution struct {
 }
 
 // Save save
-func (p *Execution) Save() (ID int, err error) {
+func (p *Execution) Save() (ID string, err error) {
 	err = db.Create(p).Error
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	return p.ID, nil
 }
 
 // SaveTx SaveTx
 // 接收外部事务
-func (p *Execution) SaveTx(tx *gorm.DB) (ID int, err error) {
+func (p *Execution) SaveTx(tx *gorm.DB) (ID string, err error) {
 	p.StartTime = util.FormatDate(time.Now(), util.YYYY_MM_DD_HH_MM_SS)
 	if err := tx.Create(p).Error; err != nil {
-		return 0, err
+		return "", err
 	}
 	return p.ID, nil
 }
 
 // GetExecByProcInst GetExecByProcInst
 // 根据流程实例id查询执行流
-func GetExecByProcInst(procInstID int) (*Execution, error) {
+func GetExecByProcInst(procInstID string) (*Execution, error) {
 	var p = &Execution{}
 	err := db.Where("proc_inst_id=?", procInstID).Find(p).Error
 	// log.Printf("procdef:%v,err:%v", p, err)
@@ -59,7 +60,7 @@ func GetExecByProcInst(procInstID int) (*Execution, error) {
 
 // GetExecNodeInfosByProcInstID GetExecNodeInfosByProcInstID
 // 根据流程实例procInstID查询执行流经过的所有节点信息
-func GetExecNodeInfosByProcInstID(procInstID int) (string, error) {
+func GetExecNodeInfosByProcInstID(procInstID string) (string, error) {
 	var e = &Execution{}
 	err := db.Select("node_infos").Where("proc_inst_id=?", procInstID).Find(e).Error
 	// fmt.Println(e)
@@ -71,7 +72,7 @@ func GetExecNodeInfosByProcInstID(procInstID int) (string, error) {
 
 // ExistsExecByProcInst ExistsExecByProcInst
 // 指定流程实例的执行流是否已经存在
-func ExistsExecByProcInst(procInst int) (bool, error) {
+func ExistsExecByProcInst(procInst string) (bool, error) {
 	e, err := GetExecByProcInst(procInst)
 	// var p = &Execution{}
 	// err := db.Where("proc_inst_id=?", procInst).Find(p).RecordNotFound

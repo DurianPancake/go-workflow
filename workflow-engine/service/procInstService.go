@@ -95,23 +95,23 @@ func FindMyProcInstByToken(token string, receiver *ProcessPageReceiver) (string,
 }
 
 // StartProcessInstanceByToken 启动流程
-func StartProcessInstanceByToken(token string, p *ProcessReceiver) (int, error) {
+func StartProcessInstanceByToken(token string, p *ProcessReceiver) (string, error) {
 	// 根据 token 获取用户信息
 	userinfo, err := GetUserinfoFromRedis(token)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	if len(userinfo.Tenant) == 0 {
-		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 tenant 不能为空")
+		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 tenant 不能为空")
 	}
 	if len(userinfo.Username) == 0 {
-		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 username 不能为空")
+		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 username 不能为空")
 	}
 	if len(userinfo.ID) == 0 {
-		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 ID 不能为空")
+		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 ID 不能为空")
 	}
 	if len(userinfo.Department) == 0 {
-		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 department 不能为空")
+		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 department 不能为空")
 	}
 	p.Tenant = userinfo.Tenant
 	p.Department = userinfo.Department
@@ -121,13 +121,13 @@ func StartProcessInstanceByToken(token string, p *ProcessReceiver) (int, error) 
 }
 
 // StartProcessInstanceByID 启动流程
-func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) (int, error) {
+func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) (string, error) {
 	// times := time.Now()
 	// runtime.GOMAXPROCS(2)
 	// 获取流程定义
 	node, prodefID, procdefName, err := GetResourceByNameAndCompany(p.ProcName, p.Tenant)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	// fmt.Printf("获取流程定义耗时：%v", time.Since(times))
 	//--------以下需要添加事务-----------------
@@ -167,14 +167,14 @@ func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) 
 	_, err = GenerateExec(exec, node, p.UserID, variable, tx) //事务
 	if err != nil {
 		tx.Rollback()
-		return 0, err
+		return "", err
 	}
 	// 获取执行流信息
 	var nodeinfos []*flow.NodeInfo
 	err = util.Str2Struct(exec.NodeInfos, &nodeinfos)
 	if err != nil {
 		tx.Rollback()
-		return 0, err
+		return "", err
 	}
 	// fmt.Printf("生成执行流耗时：%v", time.Since(times))
 	// -----------------生成新任务-------------
@@ -186,7 +186,7 @@ func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) 
 	_, err = NewTaskTx(task, tx)
 	if err != nil {
 		tx.Rollback()
-		return 0, err
+		return "", err
 	}
 	// fmt.Printf("生成新任务耗时：%v", time.Since(times))
 	//--------------------流转------------------
@@ -195,7 +195,7 @@ func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) 
 	err = MoveStage(nodeinfos, p.UserID, p.Username, p.Tenant, "启动流程", "", task.ID, procInstID, step, true, tx)
 	if err != nil {
 		tx.Rollback()
-		return 0, err
+		return "", err
 	}
 	// fmt.Printf("流转到下一流程耗时：%v", time.Since(times))
 	// fmt.Println("--------------提交事务----------")
@@ -204,7 +204,7 @@ func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) 
 }
 
 // CreateProcInstByID 新建流程实例
-// func CreateProcInstByID(processDefinitionID int, startUserID string) (int, error) {
+// func CreateProcInstByID(processDefinitionID string, startUserID string) (int, error) {
 // 	var procInst = model.ProcInst{
 // 		ProcDefID:   processDefinitionID,
 // 		StartTime:   util.FormatDate(time.Now(), util.YYYY_MM_DD_HH_MM_SS),
@@ -215,14 +215,14 @@ func (p *ProcessReceiver) StartProcessInstanceByID(variable *map[string]string) 
 
 // CreateProcInstTx CreateProcInstTx
 // 开户事务
-func CreateProcInstTx(procInst *model.ProcInst, tx *gorm.DB) (int, error) {
+func CreateProcInstTx(procInst *model.ProcInst, tx *gorm.DB) (string, error) {
 
 	return procInst.SaveTx(tx)
 }
 
 // SetProcInstFinish SetProcInstFinish
 // 设置流程结束
-func SetProcInstFinish(procInstID int, endTime string, tx *gorm.DB) error {
+func SetProcInstFinish(procInstID string, endTime string, tx *gorm.DB) error {
 	var p = &model.ProcInst{}
 	p.ID = procInstID
 	p.EndTime = endTime
@@ -319,19 +319,19 @@ func MoveFinishedProcInstToHistory() error {
 }
 
 // DelProcInstByIDTx DelProcInstByIDTx
-func DelProcInstByIDTx(procInstID int, tx *gorm.DB) error {
+func DelProcInstByIDTx(procInstID string, tx *gorm.DB) error {
 	return model.DelProcInstByIDTx(procInstID, tx)
 }
-func copyIdentitylinkToHistoryByProcInstID(procInstID int, tx *gorm.DB) error {
+func copyIdentitylinkToHistoryByProcInstID(procInstID string, tx *gorm.DB) error {
 	return model.CopyIdentitylinkToHistoryByProcInstID(procInstID, tx)
 }
-func copyExecutionToHistoryByProcInstID(procInstID int, tx *gorm.DB) error {
+func copyExecutionToHistoryByProcInstID(procInstID string, tx *gorm.DB) error {
 	return model.CopyExecutionToHistoryByProcInstIDTx(procInstID, tx)
 }
 func copyProcToHistory(procInst *model.ProcInst) error {
 	return model.SaveProcInstHistory(procInst)
 
 }
-func copyTaskToHistoryByProInstID(procInstID int, tx *gorm.DB) error {
+func copyTaskToHistoryByProInstID(procInstID string, tx *gorm.DB) error {
 	return model.CopyTaskToHistoryByProInstID(procInstID, tx)
 }

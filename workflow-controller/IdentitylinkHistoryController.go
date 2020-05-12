@@ -2,10 +2,8 @@ package controller
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
-
 	"go-workflow/workflow-engine/service"
+	"net/http"
 
 	"github.com/mumushuiding/util"
 )
@@ -21,11 +19,7 @@ func FindParticipantHistoryByProcInstID(writer http.ResponseWriter, request *htt
 		util.ResponseErr(writer, "流程 procInstID 不能为空")
 		return
 	}
-	procInstID, err := strconv.Atoi(request.Form["procInstID"][0])
-	if err != nil {
-		util.ResponseErr(writer, err)
-		return
-	}
+	procInstID := request.Form["procInstID"][0]
 	result, err := service.FindParticipantHistoryByProcInstID(procInstID)
 	if err != nil {
 		util.ResponseErr(writer, err)

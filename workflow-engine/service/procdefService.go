@@ -41,13 +41,13 @@ func GetProcdefLatestByNameAndCompany(name, tenant string) (*model.Procdef, erro
 
 // GetResourceByNameAndCompany GetResourceByNameAndCompany
 // 获取流程定义配置信息
-func GetResourceByNameAndCompany(name, tenant string) (*flow.Node, int, string, error) {
+func GetResourceByNameAndCompany(name, tenant string) (*flow.Node, string, string, error) {
 	prodef, err := GetProcdefLatestByNameAndCompany(name, tenant)
 	if err != nil {
-		return nil, 0, "", err
+		return nil, "", "", err
 	}
 	if prodef == nil {
-		return nil, 0, "", errors.New("流程【" + name + "】不存在")
+		return nil, "", "", errors.New("流程【" + name + "】不存在")
 	}
 	node := &flow.Node{}
 	err = util.Str2Struct(prodef.Resource, node)
@@ -56,10 +56,10 @@ func GetResourceByNameAndCompany(name, tenant string) (*flow.Node, int, string, 
 
 // GetResourceByID GetResourceByID
 // 根据id查询流程定义
-func GetResourceByID(id int) (*flow.Node, int, error) {
+func GetResourceByID(id int) (*flow.Node, string, error) {
 	prodef, err := GetProcdefByID(id)
 	if err != nil {
-		return nil, 0, err
+		return nil, "", err
 	}
 	node := &flow.Node{}
 	err = util.Str2Struct(prodef.Resource, node)
@@ -67,20 +67,20 @@ func GetResourceByID(id int) (*flow.Node, int, error) {
 }
 
 // SaveProcdefByToken SaveProcdefByToken
-func (p *Procdef) SaveProcdefByToken(token string) (int, error) {
+func (p *Procdef) SaveProcdefByToken(token string) (string, error) {
 	// 根据 token 获取用户信息
 	userinfo, err := GetUserinfoFromRedis(token)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	if len(userinfo.Tenant) == 0 {
-		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 tenant 不能为空")
+		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 tenant 不能为空")
 	}
 	if len(userinfo.Username) == 0 {
-		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 username 不能为空")
+		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 username 不能为空")
 	}
 	if len(userinfo.ID) == 0 {
-		return 0, errors.New("保存在redis中的【用户信息 userinfo】字段 ID 不能为空")
+		return "", errors.New("保存在redis中的【用户信息 userinfo】字段 ID 不能为空")
 	}
 	p.Tenant = userinfo.Tenant
 	p.Userid = userinfo.ID
@@ -89,15 +89,15 @@ func (p *Procdef) SaveProcdefByToken(token string) (int, error) {
 }
 
 // SaveProcdef 保存
-func (p *Procdef) SaveProcdef() (id int, err error) {
+func (p *Procdef) SaveProcdef() (id string, err error) {
 	// 流程定义有效性检验
 	err = IsProdefValid(p.Resource)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	resource, err := util.ToJSONStr(p.Resource)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	// fmt.Println(resource)
 	var procdef = model.Procdef{
@@ -111,13 +111,13 @@ func (p *Procdef) SaveProcdef() (id int, err error) {
 }
 
 // SaveProcdef 保存
-func SaveProcdef(p *model.Procdef) (id int, err error) {
+func SaveProcdef(p *model.Procdef) (id string, err error) {
 	// 参数是否为空判定
 	saveLock.Lock()
 	defer saveLock.Unlock()
 	old, err := GetProcdefLatestByNameAndCompany(p.Name, p.Tenant)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	p.DeployTime = util.FormatDate(time.Now(), util.YYYY_MM_DD_HH_MM_SS)
 	if old == nil {
@@ -130,13 +130,13 @@ func SaveProcdef(p *model.Procdef) (id int, err error) {
 	err = p.SaveTx(tx)
 	if err != nil {
 		tx.Rollback()
-		return 0, err
+		return "", err
 	}
 	// 转移旧版本
 	err = model.MoveProcdefToHistoryByIDTx(old.ID, tx)
 	if err != nil {
 		tx.Rollback()
-		return 0, err
+		return "", err
 	}
 	tx.Commit()
 	return p.ID, nil

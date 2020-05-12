@@ -11,7 +11,7 @@ import (
 type ProcInst struct {
 	Model
 	// 流程定义ID
-	ProcDefID int `json:"procDefId"`
+	ProcDefID string `json:"procDefId"`
 	// 流程定义名
 	ProcDefName string `json:"procDefName"`
 	// title 标题
@@ -25,9 +25,12 @@ type ProcInst struct {
 	// 审批人
 	Candidate string `json:"candidate"`
 	// 当前任务
-	TaskID        int    `json:"taskID"`
-	StartTime     string `json:"startTime"`
-	EndTime       string `json:"endTime"`
+	TaskID string `json:"taskID"`
+	// 实例创建时间
+	StartTime string `json:"startTime"`
+	// 实例结束时间
+	EndTime string `json:"endTime"`
+	// 实例
 	Duration      int64  `json:"duration"`
 	StartUserID   string `json:"startUserId"`
 	StartUserName string `json:"startUserName"`
@@ -186,31 +189,31 @@ func FindProcInsts(userID, procName, tenant string, groups, departments []string
 }
 
 // Save save
-func (p *ProcInst) Save() (int, error) {
+func (p *ProcInst) Save() (string, error) {
 	err := db.Create(p).Error
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	return p.ID, nil
 }
 
 //SaveTx SaveTx
-func (p *ProcInst) SaveTx(tx *gorm.DB) (int, error) {
+func (p *ProcInst) SaveTx(tx *gorm.DB) (string, error) {
 	if err := tx.Create(p).Error; err != nil {
 		tx.Rollback()
-		return 0, err
+		return "", err
 	}
 	return p.ID, nil
 }
 
 // DelProcInstByID DelProcInstByID
-func DelProcInstByID(id int) error {
+func DelProcInstByID(id string) error {
 	return db.Where("id=?", id).Delete(&ProcInst{}).Error
 }
 
 // DelProcInstByIDTx DelProcInstByIDTx
 // 事务
-func DelProcInstByIDTx(id int, tx *gorm.DB) error {
+func DelProcInstByIDTx(id string, tx *gorm.DB) error {
 	return tx.Where("id=?", id).Delete(&ProcInst{}).Error
 }
 

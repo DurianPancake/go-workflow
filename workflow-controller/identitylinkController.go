@@ -2,11 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
-
 	"github.com/mumushuiding/util"
 	"go-workflow/workflow-engine/service"
+	"net/http"
 )
 
 // FindParticipantByProcInstID 根据流程id查询流程参与者
@@ -20,11 +18,7 @@ func FindParticipantByProcInstID(writer http.ResponseWriter, request *http.Reque
 		util.ResponseErr(writer, "流程 procInstID 不能为空")
 		return
 	}
-	procInstID, err := strconv.Atoi(request.Form["procInstID"][0])
-	if err != nil {
-		util.ResponseErr(writer, err)
-		return
-	}
+	procInstID := request.Form["procInstID"][0]
 	result, err := service.FindParticipantByProcInstID(procInstID)
 	if err != nil {
 		util.ResponseErr(writer, err)

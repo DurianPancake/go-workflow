@@ -11,9 +11,9 @@ type Identitylink struct {
 	Type       string `json:"type,omitempty"`
 	UserID     string `json:"userid,omitempty"`
 	UserName   string `json:"username,omitempty"`
-	TaskID     int    `json:"taskID,omitempty"`
+	TaskID     string `json:"taskID,omitempty"`
 	Step       int    `json:"step"`
-	ProcInstID int    `json:"procInstID,omitempty"`
+	ProcInstID string `json:"procInstID,omitempty"`
 	Tenant     string `json:"tenant,omitempty"`
 	Comment    string `json:"comment,omitempty"`
 }
@@ -46,12 +46,12 @@ func (i *Identitylink) SaveTx(tx *gorm.DB) error {
 
 // DelCandidateByProcInstID DelCandidateByProcInstID
 // 删除历史候选人
-func DelCandidateByProcInstID(procInstID int, tx *gorm.DB) error {
+func DelCandidateByProcInstID(procInstID string, tx *gorm.DB) error {
 	return tx.Where("proc_inst_id=? and type=?", procInstID, IdentityTypes[CANDIDATE]).Delete(&Identitylink{}).Error
 }
 
 // ExistsNotifierByProcInstIDAndGroup 抄送人是否已经存在
-func ExistsNotifierByProcInstIDAndGroup(procInstID int, group string) (bool, error) {
+func ExistsNotifierByProcInstIDAndGroup(procInstID string, group string) (bool, error) {
 	var count int
 	err := db.Model(&Identitylink{}).Where("identitylink.proc_inst_id=? and identitylink.group=? and identitylink.type=?", procInstID, group, IdentityTypes[NOTIFIER]).Count(&count).Error
 	if err != nil {
@@ -68,7 +68,7 @@ func ExistsNotifierByProcInstIDAndGroup(procInstID int, group string) (bool, err
 
 // IfParticipantByTaskID IfParticipantByTaskID
 // 针对指定任务判断用户是否已经审批过了
-func IfParticipantByTaskID(userID, tenant string, taskID int) (bool, error) {
+func IfParticipantByTaskID(userID, tenant string, taskID string) (bool, error) {
 	var count int
 	err := db.Model(&Identitylink{}).Where("user_id=? and tenant=? and task_id=?", userID, tenant, taskID).Count(&count).Error
 	if err != nil {
@@ -84,7 +84,7 @@ func IfParticipantByTaskID(userID, tenant string, taskID int) (bool, error) {
 }
 
 // FindParticipantByProcInstID 查询参与审批的人
-func FindParticipantByProcInstID(procInstID int) ([]*Identitylink, error) {
+func FindParticipantByProcInstID(procInstID string) ([]*Identitylink, error) {
 	var datas []*Identitylink
 	err := db.Select("id,user_id,user_name,step,comment").Where("proc_inst_id=? and type=?", procInstID, IdentityTypes[PARTICIPANT]).Order("id asc").Find(&datas).Error
 	return datas, err

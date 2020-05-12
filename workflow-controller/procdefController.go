@@ -43,6 +43,7 @@ func SaveProcdefByToken(writer http.ResponseWriter, request *http.Request) {
 	util.Response(writer, fmt.Sprintf("%d", id), true)
 }
 
+// TODO 保存流程定义，当操作为编辑时，新建一条更高版本的流程定义复制，因为enable状态默认为false而不可用，不影响到之前工作的流程
 // SaveProcdef save new procdefnition
 // 保存流程定义
 func SaveProcdef(writer http.ResponseWriter, request *http.Request) {

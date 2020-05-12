@@ -40,7 +40,7 @@ func findAllProcHistory(receiver *ProcessPageReceiver) ([]*model.ProcInstHistory
 }
 
 // DelProcInstHistoryByID DelProcInstHistoryByID
-func DelProcInstHistoryByID(id int) error {
+func DelProcInstHistoryByID(id string) error {
 	return model.DelProcInstHistoryByID(id)
 }
 

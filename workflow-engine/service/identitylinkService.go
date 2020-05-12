@@ -12,7 +12,7 @@ func SaveIdentitylinkTx(i *model.Identitylink, tx *gorm.DB) error {
 }
 
 // AddNotifierTx 添加抄送人候选用户组
-func AddNotifierTx(group, tenant string, step, procInstID int, tx *gorm.DB) error {
+func AddNotifierTx(group, tenant string, step int, procInstID string, tx *gorm.DB) error {
 	yes, err := ExistsNotifierByProcInstIDAndGroup(procInstID, group)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func AddNotifierTx(group, tenant string, step, procInstID int, tx *gorm.DB) erro
 
 // AddCandidateGroupTx AddCandidateGroupTx
 // 添加候选用户组
-func AddCandidateGroupTx(group, tenant string, step, taskID, procInstID int, tx *gorm.DB) error {
+func AddCandidateGroupTx(group, tenant string, step int, taskID, procInstID string, tx *gorm.DB) error {
 	err := DelCandidateByProcInstID(procInstID, tx)
 	if err != nil {
 		return err
@@ -50,7 +50,7 @@ func AddCandidateGroupTx(group, tenant string, step, taskID, procInstID int, tx 
 
 // AddCandidateUserTx AddCandidateUserTx
 // 添加候选用户
-func AddCandidateUserTx(userID, tenant string, step, taskID, procInstID int, tx *gorm.DB) error {
+func AddCandidateUserTx(userID, tenant string, step int, taskID, procInstID string, tx *gorm.DB) error {
 	err := DelCandidateByProcInstID(procInstID, tx)
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func AddCandidateUserTx(userID, tenant string, step, taskID, procInstID int, tx 
 
 //AddParticipantTx AddParticipantTx
 // 添加任务参与人
-func AddParticipantTx(userID, username, tenant, comment string, taskID, procInstID, step int, tx *gorm.DB) error {
+func AddParticipantTx(userID, username, tenant, comment, taskID, procInstID string, step int, tx *gorm.DB) error {
 	i := &model.Identitylink{
 		Type:       model.IdentityTypes[model.PARTICIPANT],
 		UserID:     userID,
@@ -110,23 +110,23 @@ func AddParticipantTx(userID, username, tenant, comment string, taskID, procInst
 
 // IfParticipantByTaskID IfParticipantByTaskID
 // 针对指定任务判断用户是否已经审批过了
-func IfParticipantByTaskID(userID, tenant string, taskID int) (bool, error) {
+func IfParticipantByTaskID(userID, tenant string, taskID string) (bool, error) {
 	return model.IfParticipantByTaskID(userID, tenant, taskID)
 }
 
 // DelCandidateByProcInstID DelCandidateByProcInstID
 // 删除历史候选人
-func DelCandidateByProcInstID(procInstID int, tx *gorm.DB) error {
+func DelCandidateByProcInstID(procInstID string, tx *gorm.DB) error {
 	return model.DelCandidateByProcInstID(procInstID, tx)
 }
 
 // ExistsNotifierByProcInstIDAndGroup 抄送人是否已经存在
-func ExistsNotifierByProcInstIDAndGroup(procInstID int, group string) (bool, error) {
+func ExistsNotifierByProcInstIDAndGroup(procInstID string, group string) (bool, error) {
 	return model.ExistsNotifierByProcInstIDAndGroup(procInstID, group)
 }
 
 // FindParticipantByProcInstID 查询参与审批的人
-func FindParticipantByProcInstID(procInstID int) (string, error) {
+func FindParticipantByProcInstID(procInstID string) (string, error) {
 	datas, err := model.FindParticipantByProcInstID(procInstID)
 	if err != nil {
 		return "", err

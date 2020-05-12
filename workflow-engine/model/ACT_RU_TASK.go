@@ -21,7 +21,7 @@ type Task struct {
 	NodeID string `json:"nodeId"`
 	Step   int    `json:"step"`
 	// 流程实例id
-	ProcInstID int    `json:"procInstID"`
+	ProcInstID string `json:"procInstID"`
 	Assignee   string `json:"assignee"`
 	CreateTime string `json:"createTime"`
 	ClaimTime  string `json:"claimTime"`
@@ -36,10 +36,10 @@ type Task struct {
 }
 
 // NewTask 新建任务
-func (t *Task) NewTask() (int, error) {
+func (t *Task) NewTask() (string, error) {
 	err := db.Create(t).Error
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	return t.ID, nil
 }
@@ -51,7 +51,7 @@ func (t *Task) UpdateTx(tx *gorm.DB) error {
 }
 
 // GetTaskByID GetTaskById
-func GetTaskByID(id int) (*Task, error) {
+func GetTaskByID(id string) (*Task, error) {
 	var t = &Task{}
 	err := db.Where("id=?", id).Find(t).Error
 	return t, err
@@ -59,7 +59,7 @@ func GetTaskByID(id int) (*Task, error) {
 
 // GetTaskLastByProInstID GetTaskLastByProInstID
 // 根据流程实例id获取上一个任务
-func GetTaskLastByProInstID(procInstID int) (*Task, error) {
+func GetTaskLastByProInstID(procInstID string) (*Task, error) {
 	var t = &Task{}
 	err := db.Where("proc_inst_id=? and is_finished=1", procInstID).Order("claim_time desc").First(t).Error
 	return t, err
@@ -67,18 +67,18 @@ func GetTaskLastByProInstID(procInstID int) (*Task, error) {
 
 // NewTaskTx begin tx
 // 开启事务
-func (t *Task) NewTaskTx(tx *gorm.DB) (int, error) {
+func (t *Task) NewTaskTx(tx *gorm.DB) (string, error) {
 	// str, _ := util.ToJSONStr(t)
 	// fmt.Printf("newTask:%s", str)
 	err := tx.Create(t).Error
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	return t.ID, nil
 }
 
 // DeleteTask 删除任务
-func DeleteTask(id int) error {
+func DeleteTask(id string) error {
 	err := db.Where("id=?", id).Delete(&Task{}).Error
 	return err
 }

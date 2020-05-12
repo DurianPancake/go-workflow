@@ -101,7 +101,7 @@ func SaveProcInstHistory(p *ProcInst) error {
 }
 
 // DelProcInstHistoryByID DelProcInstHistoryByID
-func DelProcInstHistoryByID(id int) error {
+func DelProcInstHistoryByID(id string) error {
 	return db.Where("id=?", id).Delete(&ProcInstHistory{}).Error
 }
 

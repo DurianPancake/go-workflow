@@ -6,7 +6,7 @@ import (
 )
 
 // FindParticipantHistoryByProcInstID 历史纪录查询
-func FindParticipantHistoryByProcInstID(procInstID int) (string, error) {
+func FindParticipantHistoryByProcInstID(procInstID string) (string, error) {
 	datas, err := model.FindParticipantHistoryByProcInstID(procInstID)
 	if err != nil {
 		return "", err
