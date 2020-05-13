@@ -16,7 +16,7 @@ type Procdef struct {
 	Tenant     string `json:"tenant,omitempty"`
 	DeployTime string `json:"deployTime,omitempty"`
 	// 流程定义的上下架控制
-	Enable bool `json:"enable" gorm:"default:'false'"`
+	Enable bool `json:"enable" gorm:"default:0"`
 }
 
 // Save save and return id

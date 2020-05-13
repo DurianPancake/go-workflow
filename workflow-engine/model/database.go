@@ -49,7 +49,8 @@ func Setup() {
 	}
 	db.DB().SetMaxOpenConns(open)
 
-	db.Set("gorm:table_options", "ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;").AutoMigrate(&Procdef{}).
+	/* AUTO_INCREMENT=1 */
+	db.Set("gorm:table_options", "ENGINE=InnoDB  DEFAULT CHARSET=utf8;").AutoMigrate(&Procdef{}).
 		AutoMigrate(&Execution{}).AutoMigrate(&Task{}).
 		AutoMigrate(&ProcInst{}).AutoMigrate(&Identitylink{}).
 		AutoMigrate(&ExecutionHistory{}).
