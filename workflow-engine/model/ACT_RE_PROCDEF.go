@@ -3,20 +3,17 @@ package model
 import "github.com/jinzhu/gorm"
 
 // Procdef 流程定义表
+// Resource: 流程定义json字符串
+// Enable: 流程定义的上下架控制
 type Procdef struct {
 	Model
-	Name    string `json:"name,omitempty"`
-	Version int    `json:"version,omitempty"`
-	// 流程定义json字符串
-	Resource string `gorm:"size:10000" json:"resource,omitempty"`
-	// 用户id
-	Userid   string `json:"userid,omitempty"`
-	Username string `json:"username,omitempty"`
-	// 用户所在公司
+	Name       string `json:"name,omitempty"`
+	Version    int    `json:"version,omitempty"`
+	Resource   string `gorm:"size:10000" json:"resource,omitempty"`
+	Userid     string `json:"userid,omitempty"`
 	Tenant     string `json:"tenant,omitempty"`
 	DeployTime string `json:"deployTime,omitempty"`
-	// 流程定义的上下架控制
-	Enable bool `json:"enable" gorm:"default:0"`
+	Enable     bool   `json:"enable" gorm:"default:0"`
 }
 
 // Save save and return id
