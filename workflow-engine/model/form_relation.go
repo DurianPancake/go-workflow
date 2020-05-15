@@ -9,6 +9,7 @@ import "time"
 type FormRelation struct {
 	Model
 	Tenant    string     `json:"tenant"`
+	AppId     string     `json:"app_id"`
 	FormId    string     `json:"form_id"`
 	ProcdefID string     `json:"procdef_id"`
 	Insert    bool       `json:"insert,omitempty" gorm:"default:0"`
