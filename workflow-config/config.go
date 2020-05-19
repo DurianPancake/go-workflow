@@ -41,7 +41,7 @@ type Configuration struct {
 var Config = &Configuration{}
 
 func init() {
-	LoadConfig()
+	//LoadConfig()
 }
 
 // LoadConfig LoadConfig

@@ -1,0 +1,102 @@
+application:
+  name: gateway
+  debug: true
+  # rpc server config
+  rpc-server-port: ${RPC_SERVER_PORT:50051}
+  # http server config
+  http-server-port: ${HTTP_SERVER_PORT:8080}
+
+# redis config
+redis:
+  prefix: IMCS
+  model: ${REDIS_CLUSTER_MODEL:stand-alone} # stand-alone, sentinel, cluster
+  server: ${REDIS_ADDRESS:127.0.0.1:6379} # 192.168.1.1:6379,192.168.1.2:6379
+  db: ${REDIS_DB:0}
+  password: ${REDIS_PASSWORD:sa}
+  timeout: ${REDIS_TIMEOUT:20}
+
+rabbit:
+  dsn: ${RABBIT_DSN:amqp://guest:guest@localhost:5672/}
+  type: ${RABBIT_TYPE:SimpleQueue} #SimpleQueue, BroadQueue,DirectQueue, TopicQueue
+  is_persistent: ${RABBIT_PERSISTENT:false} #是否持久化
+
+# database config
+database:
+  driver: ${DATABASE_DRIVER:mysql} #mysql,postgres,mssql
+  table-prefix: imcs
+  mysql-dsn: ${DATABASE_USER:root}:${DATABASE_PASSWORD:sa}@tcp(${DATABASE_HOST:127.0.0.1}:${DATABASE_PORT:3306})/${DATABASE_NAME:imcs}?charset=utf8mb4&parseTime=True&loc=Local
+  postgres-dsn: host=${DATABASE_HOST:localhost} port=${DATABASE_PORT:5432} user=${DATABASE_USER:root} dbname=${DATABASE_NAME:imcs} password=${DATABASE_PASSWORD:sa}
+  mssql-dsn: sqlserver://${DATABASE_USER:root}:${DATABASE_PASSWORD:sa}@${DATABASE_HOST:127.0.0.1}:${DATABASE_PORT:1433}?database=${DATABASE_NAME:imcs}
+  max-idle-conns: ${DATABASE_MAX_IDLE_CONNS:10}
+  max-open-conns: ${DATABASE_MAX_OPEN_CONNS:100}
+
+#grpc client
+grpc:
+  client:
+    snowflake:
+      address: ${SNOWFLAKE_SERVER_ADDRESS:127.0.0.1:50051}
+    file:
+      address: ${FILE_SERVER_ADDRESS:127.0.0.1:50051}
+    transaction:
+      address: ${TRANSACTION_SERVER_ADDRESS:127.0.0.1:50051}
+    field-string:
+      address: ${FIELD_STRING_SERVER_ADDRESS:127.0.0.1:50053}
+
+
+
+# snowflake service config
+snowflake:
+  worker-id: ${SNOWFALKE_APPLICATION_WORKER_ID:1}
+  data-center-id: ${SNOWFALKE_APPLICATION_DATA_CENTER_ID:1}
+
+# transaction_cc service config
+transaction:
+  retry-times: 10 #重试次数
+  retry-time-interval: 5,10,30,60,120,300,1800,3600,28800,86400 #重试时间间隔
+
+# 文件
+file:
+  store: aws
+  aws:
+    access-key: ${AWS_ACCESS_KEY:LTAI4FiZ7a5AdQLnsrGtWUVi}
+    secret-key: ${AWS_SECRET_KEY:DyQOkaaD0mniy8JreBo3l9N22Hdwx9}
+    end-point: ${AWS_END_POINT:http://127.0.0.1:9000}
+    bucket: ${AWS_BUCKET:imcs-test}
+    disable-ssl: ${AWS_DISABLE_SSL:true}
+    force-path-style: ${AWS_FORCR_PATH_STYLE:true} #virtual-host style方式
+    default-preview:
+      pdf: ${AWS_DEFAULT_PREVIEW_PDF:902083874043850752}
+      doc: ${AWS_DEFAULT_PREVIEW_DOC:902083874043850752}
+      image: ${AWS_DEFAULT_PREVIEW_IMAGE:902083874043850752}
+      default: ${AWS_DEFAULT_PREVIEW_DEFAULT:902083874043850752}
+
+gateway:
+  jwt:
+    key: The foreign delegates also pledged to work with China to uphold multilateralism
+    login-exp-time: 600000
+    oauth-exp-time: 6000000000
+  service:
+    snowflake:
+      address: ${SNOWFLAKE_SERVER_ADDRESS:127.0.0.1:50051}
+      id:
+        type: no_login
+      ids:
+        type: no_login
+    user:
+      address: ${USER_SERVER_ADDRESS:127.0.0.1:50051}
+      login:
+        type: no_login
+        context: user_id,username,avatar
+      logout:
+        type: login
+      edit:
+        type: auth
+
+
+# local service config
+local:
+  snowflake:
+    deploy: true
+    port: 60001
+  file:
+    deploy: true
